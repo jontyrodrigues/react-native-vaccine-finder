@@ -1,33 +1,33 @@
-#react native vaccine finder
+# React native vaccine finder
 
-This app uses react native framework and the cowin api from the govt of india to provide real time vaccine information for various districts.
-This app also used openmap API to get geocoding data for the latitude and longitude data of various pincode, why this is done will be explained below.
+1. This app uses react native framework and the cowin api from the govt of india to provide real time vaccine information for various districts.
+2. This app also used openmap API to get geocoding data for the latitude and longitude data of various pincode, why this is done will be explained below.
 
 
-#features
+# Features
 
-Search for centers in a specific district at a specific date
-Filter according to age, vaccine, availability of dose
-Search for plain text in name, address and pincode of center.
-Find Location of a given center on google map
+1. Search for centers in a specific district at a specific date
+2. Filter according to age, vaccine, availability of dose
+3. Search for plain text in name, address and pincode of center.
+4. Find Location of a given center on google map
 
-#coming soon 
+# Coming soon 
 
-Set reminder for vaccine slot availability
-Search nearby centers
+1. Set reminder for vaccine slot availability
+2. Search nearby centers
 
-#location issue 
+# Location issue 
 
 By default in the findbydistrict endpoint you get latitude and longitude data but it is wrong. A more accurate result is found in the findbylonglat api endpoint but I have seen many inaccuracies in that as well. My approach isn't any better it justs find the base latitude and longitude of a pincode and then tries to call the findbylonglat api endpoint which hopefully should give the latitude and longitude data but unfortunatly some of the data is still inaccurate. 
 Another approach would be to get the latitude and longitude by geocoding the name and address of the centers which would work but still there are inaccuracies. 
 The method i have used is temperory as i am testing and might use some other method
 
-#how to clone and install
+# How to clone and install
 
 Requirements
-git
-nodejs
-react native
+1. git
+2. nodejs
+3. npm
 
 ```console
 git clone https://github.com/jontyrodrigues/react-native-vaccine-finder.git
