@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "vaccine2",
+    "name": "vaccine finder",
     "slug": "vaccine2",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -16,14 +16,22 @@
     "assetBundlePatterns": [
       "**/*"
     ],
+    "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true
     },
     "android": {
+      "config" : {
+        "googleMaps": {
+          "apiKey" : "YOUR_API_KEY"
+        }
+      },
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
-      }
+      },
+      "package": "in.jontyr.vaccinefinder",
+      "userInterfaceStyle": "light"
     },
     "web": {
       "favicon": "./assets/favicon.png"

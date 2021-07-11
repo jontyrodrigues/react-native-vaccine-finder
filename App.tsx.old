@@ -1,0 +1,470 @@
+import React, { Fragment, useEffect, useState } from 'react';
+import { ActivityIndicator,Button, SafeAreaView,TextInput,Platform, Pressable, FlatList, Text, Switch ,View , StatusBar, StyleSheet, TouchableOpacity, ColorPropType} from 'react-native';
+import {Picker, PickerIOS} from '@react-native-picker/picker';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import Dropdown from 'react-dropdown';
+import 'react-dropdown/style.css';
+
+const Item = ({ item }) => (
+    <Text style = {{backgroundColor: "#3166eb", color: "white", margin: 5, padding: 10}}>
+      <Text style={[styles.title]}>{item.name} {"\n"}</Text>
+      <View style={{display: "flex", flexDirection: "row"}}>
+        <Text style={[{color: "white"},styles.vaccine]}>{item.vaccine}</Text>
+        <Text style={[{color: "white"},styles.vaccine]}>{" "}{item.min_age_limit}{"+"}</Text>
+        <Text style={[{color: "#e8e8e8"},styles.dose]}>{" D1: "}{item.available_capacity_dose1}</Text>
+        <Text style={[{color: "#e8e8e8"},styles.dose]}>{" D2: "}{item.available_capacity_dose2}</Text>
+        <Text style={[{color: "#e8e8e8"},styles.dose]}>{" Fee: "}{item.fee}</Text>
+      </View>
+      <Text style={[{color: "#e8e8e8"},styles.dose]}>{"\n"}{"Pincode: "}{item.pincode}</Text>
+      <Text style={[{color: "#e8e8e8"},styles.dose]}>{"\n"}{"Address: "}{item.address}</Text>
+    </Text>
+);
+
+const App = () => {
+  const [isLoading, setLoading] = useState(true);
+  const [isLoadingList,setLoadingList] = useState(true);
+
+  const [hasGotData,setHasGotData] = useState(false);
+  const [data, setData] = useState([]);
+
+  const [data_district,setDataDistrict] = useState([]);
+  const [isLoadingDistrict, setLoadingDistrict] = useState(true);
+
+  const [selectedLanguage, setSelectedLanguage] = useState();
+  const [selectedDistrict, setSelectedDistrict] = useState();
+
+  const [centerDate, setCenterData] = useState();
+
+  const today = new Date;
+
+  const [date, setDate] = useState(new Date(today.getTime()));
+  const [mode, setMode] = useState('date');
+  const [show, setShow] = useState(false);
+
+  let FFP, EP, CVS, CV, Free, Paid;
+
+  const [isEnabled18, setIsEnabled18] = useState(true);
+  const toggleSwitch18 = () => {setIsEnabled18(previousState => !previousState);
+
+  }
+
+  const [isEnabled45, setIsEnabled45] = useState(true);
+  const toggleSwitch45 = () => {setIsEnabled45(previousState => !previousState);
+   
+  }
+
+  const [isEnabledCovishield, setIsEnabledCovishield] = useState(true);
+  const toggleSwitchCovishield = () => {setIsEnabledCovishield(previousState => !previousState);
+  
+  }
+
+  const [isEnabledCovaxin, setIsEnabledCovaxin] = useState(true);
+  const toggleSwitchCovaxin = () => {setIsEnabledCovaxin(previousState => !previousState);
+    
+  }
+
+  const [isEnableddose1, setIsEnableddose1] = useState(true);
+  const toggleSwitchdose1 = () => {setIsEnableddose1(previousState => !previousState);
+  
+  }
+
+  const [isEnableddose2, setIsEnableddose2] = useState(true);
+  const toggleSwitchdose2 = () => {setIsEnableddose2(previousState => !previousState);
+    
+  }
+
+  const [isEnabledFree, setIsEnabledFree] = useState(true);
+  const toggleSwitchFree = () => {setIsEnabledFree(previousState => !previousState);
+    
+  }
+  const [isEnabledPaid, setIsEnabledPaid] = useState(true);
+  const toggleSwitchPaid = () => {setIsEnabledPaid(previousState => !previousState);
+    
+  }
+  // Date Functions 
+  const onChange = (event, selectedDate) => {
+    const currentDate = selectedDate || date;
+    setShow(Platform.OS === 'ios');
+    setDate(currentDate);
+  };
+
+  const showMode = (currentMode) => {
+    setShow(true);
+    setMode(currentMode);
+  };
+
+  const showDatepicker = () => {
+    showMode('date');
+  };
+
+  const [text, onChangeText] = useState("");
+  
+  const renderItem = ({ item }) => {
+    isEnabled45 === true ? FFP = 45 : FFP = false
+    isEnabled18 === true ? EP = 18 : EP = false
+    isEnabledCovishield === true ? CVS = "COVISHIELD" : CVS = false
+    isEnabledCovaxin === true ? CV = "COVAXIN" : CV = false
+    isEnabledFree === true ? Free = "Free" : Free = false
+    isEnabledPaid === true ? Paid = "Paid" : Paid = false
+
+    if((item.name.search('WORK') !== -1 || item.name.search('Workplace') !== -1 || item.name.search('WP') !== -1 || item.name.search('PLACE') !== -1))
+    {
+      return;
+    }
+    if ((text === "" || 
+    (item.name.includes(text) || item.pincode.toString().includes(text)
+    || item.address.includes(text))) &&
+      (item.min_age_limit === FFP || item.min_age_limit === EP )
+      && (item.vaccine === CVS || item.vaccine === CV)
+      && ((item.available_capacity_dose1 > 0 && isEnableddose1)|| 
+      (item.available_capacity_dose2 > 0 && isEnableddose2)) &&
+      (item.fee_type === Free || item.fee_type === Paid)
+      )
+     { return (
+      <Item
+        item={item}
+      />
+    );
+    }else{
+      return null;
+    }
+  };
+  const searchForText = (text) =>{
+    //center_data.sessions.find(element => element.name.includes(""))
+    
+  }
+
+  const copy = () => {
+  
+  }
+  const getData = (district,selectedDate) => {
+    var thisDate = date.getDate()+"-"+(date.getUTCMonth()+1)+"-"+date.getUTCFullYear();
+    onChangeText("");
+    fetch('https://cdn-api.co-vin.in/api/v2/appointment/sessions/public/findByDistrict?district_id='+district.selectedDistrict+'&date='+thisDate,{
+      method: 'GET',
+      mode: 'same-origin',
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent':'Mozilla/5.0 (platform; rv:geckoversion) Gecko/geckotrail Firefox/firefoxversion'
+      },
+      referrerPolicy: 'same-origin'
+    })
+      .then((response) => response.json())
+      .then((json) => setCenterData(json.sessions))
+      .catch((error) => console.error(error))
+      .finally(() => {setLoadingList(false),
+      copy()});
+  }
+
+  const selectDistrict = (state_id) => {
+    fetch('https://cdn-api.co-vin.in/api/v2/admin/location/districts/'+state_id,{
+      method: 'GET',
+      mode: 'same-origin',
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent':'Mozilla/5.0 (platform; rv:geckoversion) Gecko/geckotrail Firefox/firefoxversion'
+      },
+      referrerPolicy: 'same-origin'
+    })
+      .then((response) => response.json())
+      .then((json) => setDataDistrict(json.districts))
+      .catch((error) => console.error(error))
+      .finally(() => setLoadingDistrict(false));
+  }
+  useEffect(() => {
+    fetch('https://cdn-api.co-vin.in/api/v2/admin/location/states',{
+      method: 'GET',
+      mode: 'same-origin',
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent':'Mozilla/5.0 (platform; rv:geckoversion) Gecko/geckotrail Firefox/firefoxversion'
+      },
+      referrerPolicy: 'same-origin'
+    })
+      .then((response) => response.json())
+      .then((json) => setData(json.states))
+      .catch((error) => console.error(error))
+      .finally(() => setLoading(false));
+  }, []);
+
+  return (
+    <View style={styles.container}>
+      {isLoading ? <ActivityIndicator/> : (
+        <Picker
+        style = {styles.picker}
+        selectedValue={selectedLanguage}
+        onValueChange={(itemValue, itemIndex) =>{setSelectedLanguage(itemValue),
+          selectDistrict(itemValue)}
+          }
+          >
+          {data.map((item,key)=> 
+          <Item label = {item.state_name} value = {item.state_id} key = {key}/>
+        )}
+      </Picker> 
+      )}
+      {isLoadingDistrict ? <ActivityIndicator/> : (
+        <Picker
+        style = {styles.picker}
+        selectedValue={selectedDistrict}
+        onValueChange={(itemValue, itemIndex) =>{setSelectedDistrict(itemValue)}
+          }
+        >
+            {data_district.map((item,key)=>
+          <Item label = {item.district_name} value = {item.district_id} key = {key}/>
+        )}
+      </Picker>
+      )}
+      {isLoadingDistrict ? <ActivityIndicator/> : (
+      <View>
+        <View>
+            
+            <View>
+              <Pressable onPress={showDatepicker}
+              style={({ pressed }) => [
+                {
+                  backgroundColor: pressed
+                    ? 'rgb(210, 230, 255)'
+                    : '#3166eb',
+                  justifyContent: "center",
+                  alignItems: "center",
+                  marginTop: 5,
+                },
+                styles.wrapperCustom
+              ]}>
+                {
+                  <Text style = {{fontSize: 17, justifyContent: "center",alignItems: "center",color: "white"}}>
+                  {date.getDate()+"-"+(date.getUTCMonth()+1)+"-"+date.getUTCFullYear()}
+                  </Text>
+                }
+              </Pressable>
+            </View>
+            {show && (
+              <DateTimePicker
+                testID="dateTimePicker"
+                value={date}
+                mode={mode}
+                is24Hour={true}
+                display="default"
+                onChange={onChange}
+              />
+            )}
+        </View>
+      </View>
+      )}
+        {isLoadingDistrict ? <ActivityIndicator/> : (
+        <Pressable
+        style={({ pressed }) => [
+          {
+            backgroundColor: pressed
+              ? 'rgb(210, 230, 255)'
+              : '#3166eb',
+            justifyContent: "center",
+            alignItems: "center",
+            marginTop: 5,
+          },
+          styles.wrapperCustom
+        ]}
+        onPress={() => {getData({selectedDistrict},date),setHasGotData(true)}
+        
+      }
+      >
+        {({ pressed }) => (
+          <Text style={styles.text}>
+            Search
+          </Text>
+        )}
+      </Pressable>)
+      }{
+        hasGotData ? 
+        <View>
+          <View style = {{display: "flex", flexDirection: "row", alignItems: "center", padding: 5,}}>
+            <View style = {styles.flexbox}>
+              <Switch
+              trackColor={{ false: "#767577", true: "#81b0ff" }}
+              thumbColor={isEnabled18 ? "#3166eb" : "#f4f3f4"}
+              ios_backgroundColor="#3e3e3e"
+              onValueChange={toggleSwitch18}
+              value={isEnabled18}
+              />
+              <Text style = {styles.switchText}>
+                18+
+              </Text>
+              <Switch
+              trackColor={{ false: "#767577", true: "#81b0ff" }}
+              thumbColor={isEnabled45 ? "#3166eb" : "#f4f3f4"}
+              ios_backgroundColor="#3e3e3e"
+              onValueChange={toggleSwitch45}
+              value={isEnabled45}
+              />
+              <Text style = {styles.switchText}>
+                45+
+              </Text>
+            </View>
+            <View style = {styles.flexbox}>
+              <Switch
+              trackColor={{ false: "#767577", true: "#81b0ff" }}
+              thumbColor={isEnableddose1 ? "#3166eb" : "#f4f3f4"}
+              ios_backgroundColor="#3e3e3e"
+              onValueChange={toggleSwitchdose1}
+              value={isEnableddose1}
+              />
+              <Text style = {styles.switchText}>
+                Dose 1
+              </Text>
+              <Switch
+              trackColor={{ false: "#767577", true: "#81b0ff" }}
+              thumbColor={isEnableddose2 ? "#3166eb" : "#f4f3f4"}
+              ios_backgroundColor="#3e3e3e"
+              onValueChange={toggleSwitchdose2}
+              value={isEnableddose2}
+              />
+              <Text style = {styles.switchText}>
+                Dose 2
+              </Text>
+            </View>
+          </View>
+          <View style = {{display: "flex", flexDirection: "row", alignItems: "center", padding: 5,}}>
+           <View style = {styles.flexbox}>
+            <Switch
+            trackColor={{ false: "#767577", true: "#81b0ff" }}
+            thumbColor={isEnabledCovishield ? "#3166eb" : "#f4f3f4"}
+            ios_backgroundColor="#3e3e3e"
+            onValueChange={toggleSwitchCovishield}
+            value={isEnabledCovishield}
+            />
+            <Text style = {styles.switchText}>
+              Covishield
+            </Text>
+            <Switch
+            trackColor={{ false: "#767577", true: "#81b0ff" }}
+            thumbColor={isEnabledCovaxin ? "#3166eb" : "#f4f3f4"}
+            ios_backgroundColor="#3e3e3e"
+            onValueChange={toggleSwitchCovaxin}
+            value={isEnabledCovaxin}
+            />
+            <Text style = {styles.switchText}>
+              Covaxin
+            </Text>
+           </View>
+           <View style = {styles.flexbox}>
+            <Switch
+            trackColor={{ false: "#767577", true: "#81b0ff" }}
+            thumbColor={isEnabledFree ? "#3166eb" : "#f4f3f4"}
+            ios_backgroundColor="#3e3e3e"
+            onValueChange={toggleSwitchFree}
+            value={isEnabledFree}
+            />
+            <Text style = {styles.switchText}>
+              Free
+            </Text>
+            <Switch
+            trackColor={{ false: "#767577", true: "#81b0ff" }}
+            thumbColor={isEnabledPaid ? "#3166eb" : "#f4f3f4"}
+            ios_backgroundColor="#3e3e3e"
+            onValueChange={toggleSwitchPaid}
+            value={isEnabledPaid}
+            />
+            <Text style = {styles.switchText}>
+              Paid
+            </Text>
+           </View>
+          </View>
+          <SafeAreaView>
+           <TextInput
+            style={styles.input}
+            onChangeText={onChangeText}
+            value={text}/>
+           </SafeAreaView>
+        </View>
+     :
+      <ActivityIndicator/>
+      }
+      {isLoadingList ? <ActivityIndicator/> :(
+        <FlatList
+        style = {{marginTop: 15}}
+        data={centerDate}
+        keyExtractor={(item) => item.session_id}
+        renderItem={renderItem}
+      />
+      )}
+    </View>
+  );
+};
+
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    marginTop: StatusBar.currentHeight || 0,
+  },
+  item: {
+    padding: 20,
+    marginVertical: 8,
+    marginHorizontal: 16,
+    backgroundColor: '#f9c2ff',
+  },
+  title: {
+    fontSize: 16,
+  },
+  vaccine: {
+    fontSize: 14,
+  },
+  dropdown: {
+    backgroundColor: 'gray',
+    borderBottomColor: 'gray',
+    borderBottomWidth: 0.5,
+    marginTop: 20,
+},
+shadow: {
+  shadowColor: '#000',
+  shadowOffset: {
+  width: 0,
+  height: 1,
+  },
+  shadowOpacity: 0.2,
+  shadowRadius: 1.41,
+  elevation: 2,
+},
+picker: {
+minHeight : "5%",
+color: "black",
+},
+text: {
+  fontSize: 16,
+  color: "white",
+
+},
+wrapperCustom: {
+  borderRadius: 8,
+  padding: 15,
+  width: "97%",
+  marginLeft: 3,
+},
+switchText: {
+  fontSize: 16,
+},
+flexbox:{
+  display: "flex", 
+  flexDirection: "row", 
+  alignItems: "center",
+},
+dose:{
+  fontSize: 15,
+  fontWeight: "800",
+  color : "white",
+  borderRadius: 15,
+},
+input: {
+  minHeight: "40%",
+  borderWidth: 1,
+  padding: 10,
+  marginLeft: 5,
+  width: "97%", 
+  flex: 1,
+  borderRadius: 5,
+  borderColor: "grey",
+},
+});
+
+
+export default App;
